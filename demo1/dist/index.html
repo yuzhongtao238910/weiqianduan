@@ -52,14 +52,18 @@
 				script.async = true
 				document.head.appendChild(script)
 				script.addEventListener("load", function() {
-					resolve()
+					let _lastRegister = lastRegister
+					lastRegister= null
+					resolve(_lastRegister)
 				})
 			})
 		}
+		let lastRegister
 		// 就是一个模块规范 用来加载systemjs模块的
 		class SystemJs {
 			register(deps, declare) {
-				console.log(deps, declare)
+				// 将回调的结果保存起来
+				lastRegister = [deps, declare]
 			}
 			import(id) { // 这个id原则上可以是一个第3方路径 / 文件
 				// 去当前路径查找对应的资源
@@ -72,13 +76,21 @@
 						return baseURL + id.slice(2)
 					}
 				}).then(id => {
-					console.log(id)
 					// 根据id文件路径 来加载
-					return load(id).then(() => {
+					return load(id).then((register) => {
 					    // 此时会执行
-					    console.log("文件加载完毕!!!")
+					    let {setters, execute} = register[1](() => {}, null)
+					    // execute 是真正的执行的渲染的逻辑
+					    // setters 是用来保存加载后的资源
+				    	// 加载资源调用 setters
+				    	return [register[0], setters]
 				    })
-
+				}).then(([registeration, setters]) => {
+					console.log(registeration, 90)
+					registeration.map((dep, i) => {
+						setters[i] // 拿到的是函数 加载资源将加载后的脚本传递给setter
+					})
+					console.log(setters, 90)
 				})
 			}
 		}
