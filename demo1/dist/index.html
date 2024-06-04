@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title></title>
+</head>
+<body>
+	主应用 - 基座 - 用来加载子应用的
+	<div id="root"></div>
+	
+	<!-- <script type="text/javascript" src="./system.js"></script> -->
+	<script type="systemjs-importmap">
+		{
+			"imports": {
+				"react": "./react.development.js",
+				"react-dom": "./react-dom.development.js"
+			}
+		}
+	</script>
+	<script type="text/javascript">
+		// 自己实现一个systemjs的逻辑
+		// 1） systemjs是如何定义的 先看打包后的结果
+		// System.register([依赖列表], function() {
+		// 	return {
+		// 		setters: [
+		//			Object.keys(module).forEach(function(key) {
+		//				__WEBPACK_EXTERNAL_MODULE_react_dom__[key] = module[key];
+		//			});
+		//      ],
+		// 		execute: () => {}
+		// 	}
+		// })
+		// 2）react react-dom加载后调用setters里面的函数 将结果给webpack 
+		// 3） 调用执行逻辑 execute 执行页面渲染
+
+		const newMapUrl = {}
+		function processScripts() {
+			Array.from(document.querySelectorAll("script")).forEach(script => {
+				if (script.type === 'systemjs-importmap') {
+					const imports = JSON.parse(script.innerHTML).imports
+					Object.entries(imports).forEach(([key, value]) => {
+						newMapUrl[key] = value
+					})
+				}
+			})
+		}
+		function load(id) {
+			return new Promise((resolve, reject) => {
+				const script = document.createElement("script")
+				script.src = id
+				script.async = true
+				document.head.appendChild(script)
+				script.addEventListener("load", function() {
+					resolve()
+				})
+			})
+		}
+		// 就是一个模块规范 用来加载systemjs模块的
+		class SystemJs {
+			register(deps, declare) {
+				console.log(deps, declare)
+			}
+			import(id) { // 这个id原则上可以是一个第3方路径 / 文件
+				// 去当前路径查找对应的资源
+				return Promise.resolve(processScripts()).then(() => {
+					// 路径查找资源
+					// console.log(newMapUrl)
+					const lastSepIndex = location.href.lastIndexOf("/")
+					const baseURL = location.href.slice(0, lastSepIndex + 1)
+					if (id.startsWith("./")) { // 这块只考虑了本地加载的情况
+						return baseURL + id.slice(2)
+					}
+				}).then(id => {
+					console.log(id)
+					// 根据id文件路径 来加载
+					return load(id).then(() => {
+					    // 此时会执行
+					    console.log("文件加载完毕!!!")
+				    })
+
+				})
+			}
+		}
+		const System = new SystemJs()
+	</script>
+
+	<script type="text/javascript">
+		let a = 1
+		let b = 2
+	</script>
+	<script type="text/javascript">
+		console.log(a, b)
+	</script>
+	<script type="text/javascript">
+		console.log(System)
+	</script>
+	
+
+
+	<script type="text/javascript">
+		// 直接加载子应用
+		// 保证react react-dom全部加载完成后 才加载这个文件
+		System.import("./index.js").then(res => {
+			console.log("模块加载完毕")
+		}) // 导入打包后的包来进行加载 采用的规范就是systemjs
+	</script>
+	
+
+</body>
+</html>
