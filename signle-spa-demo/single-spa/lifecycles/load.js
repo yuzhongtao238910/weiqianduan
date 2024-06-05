@@ -3,6 +3,19 @@ import {
 	LOADING_SOURCE_CODE,
 	NOT_BOOTSTRAPPED
 } from "../application/app.helpers.js"
+
+
+/*
+
+*/
+
+function flattenArrayToPromise(fns) { // 可能是函数 也可能是数组
+	fns = Array.isArray(fns) ? fns : [fns]
+	return function() {
+		
+	}
+} 
+
 export function toLoadPromise(app) {
 	return Promise.resolve().then(() => {
 		if (app.status !== NOT_LOADED) {
@@ -17,9 +30,10 @@ export function toLoadPromise(app) {
 				unmount
 			} = v
 			app.status = NOT_BOOTSTRAPPED
-			app.bootstrap = bootstrap
-			app.mount = mount
-			app.unmount = unmount
+			// 这3个可能是数组，是数组的话就是拍平他们
+			app.bootstrap = flattenArrayToPromise(bootstrap)
+			app.mount = flattenArrayToPromise(mount)
+			app.unmount = flattenArrayToPromise(unmount)
 			return app
 		})
 	})
