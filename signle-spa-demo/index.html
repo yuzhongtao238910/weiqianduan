@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title></title>
+	</head>
+	<body>
+		<!-- <script src="./single-spa.dev.min.js"></script> -->
+		<div id="a1"></div>
+		<div id="a2"></div>
+		<!-- <script type="text/javascript">
+			// sessionStorage.setItem('aa', 11)
+		</script> -->
+		<script type="module">
+			console.log(window)
+			let aa = 99
+			/*
+			可以加载不同的应用 react vue写的 基于路由的微前端
+
+			如何接入已经写好的应用 对于single-spa 来说，我们需要改写子应用 接入协议 bootstrap mount unmount
+
+		*/
+			// /vue /react
+			// bootstrap 启动
+			// http://127.0.0.1:5500/index.html#/b
+			import { registerApplication, start } from './single-spa/single-spa.js'
+			// const { registerApplication, start } = singleSpa
+			let app1 = {
+				bootstrap: [
+					async (props) => console.log('app1 bootstrap-1', props),
+					async (props) => console.log('app1 bootstrap-2', props),
+				],
+				mount: [
+					async (props) => {
+						// 挂载 new Vue().$mount
+						console.log('app1 mount1', props)
+						a1.innerHTML = 'app1'
+						aa = 100
+					},
+					async () => {
+						// 挂载 new Vue().$mount
+						console.log('app1 mount2')
+					},
+				],
+				unmount: async (props) => {
+					console.log('app1 unmount', props)
+					a1.innerHTML = ''
+				},
+			}
+			let app2 = {
+				bootstrap: async () => console.log('app2 bootstrap'),
+				mount: async () => {
+					// 挂载 new Vue().$mount
+					console.log('app2 mount')
+					a2.innerHTML = 'app2'
+					aa = 101
+				},
+				unmount: async () => {
+					console.log('app2 unmount')
+					a2.innerHTML = ''
+					console.log(aa)
+				},
+			}
+			// 所谓的注册应用就是看路径是否匹配，如果匹配的话就是加载对应的应用
+			// 当路径是 #a的时候就会加载a的应用 // {name}
+			registerApplication(
+				'app1',
+				async () => app1,
+				(location) => location.hash.startsWith('#/a'),
+				{
+					a: 1, // 中间通信的属性
+				}
+			)
+			registerApplication(
+				'app2',
+				async () => app2,
+				(location) => location.hash.startsWith('#/b')
+			)
+			// 开启路径的监控 路径切换的时候可以调用对应的mount unmount方法
+			start()
+		</script>
+	</body>
+</html>

@@ -1,0 +1,5 @@
+export function Home() {
+	return (
+		<h1>222</h1>
+	)
+}

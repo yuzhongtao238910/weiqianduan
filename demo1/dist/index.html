@@ -48,7 +48,7 @@
 		function load(id) {
 			return new Promise((resolve, reject) => {
 				const script = document.createElement("script")
-				script.src = id
+				script.src = newMapUrl[id] || id // 支持cdn的查找
 				script.async = true
 				document.head.appendChild(script)
 				script.addEventListener("load", function() {
@@ -57,6 +57,22 @@
 					resolve(_lastRegister)
 				})
 			})
+		}
+		let set = new Set() // 先保存 window上面的属性
+		function saveGlobalProperty() {
+			for (let key in window) {
+				set.add(key)
+			}
+		}
+		saveGlobalProperty()
+		function getLastGlobalProperty() {
+			for (let k in window) {
+				if (set.has(k)) {
+					continue
+				}
+				set.add(k)
+				return window[k]
+			}
 		}
 		let lastRegister
 		// 就是一个模块规范 用来加载systemjs模块的
@@ -76,21 +92,28 @@
 						return baseURL + id.slice(2)
 					}
 				}).then(id => {
+					let execute
 					// 根据id文件路径 来加载
 					return load(id).then((register) => {
 					    // 此时会执行
-					    let {setters, execute} = register[1](() => {}, null)
+					    let {setters, execute: exe} = register[1](() => {}, null)
+					    execute = exe
 					    // execute 是真正的执行的渲染的逻辑
 					    // setters 是用来保存加载后的资源
 				    	// 加载资源调用 setters
 				    	return [register[0], setters]
-				    })
-				}).then(([registeration, setters]) => {
-					console.log(registeration, 90)
-					registeration.map((dep, i) => {
-						setters[i] // 拿到的是函数 加载资源将加载后的脚本传递给setter
+				    }).then(([registeration, setters]) => {
+						return Promise.all(registeration.map((dep, i) => {
+							return load(dep).then(() => {
+								// 加载完成后，会在window上增加属性 window.React window.ReactDOM
+								// 获取window上面最后的增加的属性
+								setters[i](getLastGlobalProperty()) // 拿到的是函数 加载资源将加载后的脚本传递给setter
+							})
+						
+						}))
+					}).then(() => {
+						execute()
 					})
-					console.log(setters, 90)
 				})
 			}
 		}
@@ -111,11 +134,20 @@
 
 
 	<script type="text/javascript">
+		/*
+			本质就是先加载依赖列表，再去加载真正的逻辑
+			内部通过script脚本加载资源，给window拍摄快照
+			
+			缺点：就是有学习成本
+		*/
 		// 直接加载子应用
 		// 保证react react-dom全部加载完成后 才加载这个文件
 		System.import("./index.js").then(res => {
 			console.log("模块加载完毕")
 		}) // 导入打包后的包来进行加载 采用的规范就是systemjs
+
+		// single-spa 如何借助了 这个system来实现了模块的加载
+		// npm i create-single-spa -g
 	</script>
 	
 
