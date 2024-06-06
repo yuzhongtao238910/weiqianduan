@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>静态应用</title>
+</head>
+<body>
+  <div id="static">1</div>
+<script type="text/javascript">
+    function render() {
+        app.innerHTML = 'render'
+    }
+    // http-server --port 30000 --cors
+  const app = document.getElementById("static")
+    if (!window.__POWERED_BY_QIANKUN__) {
+        render()
+    }
+  // 最终导出接入协议就可以
+  window["m-static"] = {
+    bootstrap: async () => {
+      console.log("static bootstrap")
+    },
+    mount: async () => {
+        render()
+    },
+    unmount: async () => {
+      app.innerHTML = ""
+    }
+  }
+</script>
+</body>
+</html>
