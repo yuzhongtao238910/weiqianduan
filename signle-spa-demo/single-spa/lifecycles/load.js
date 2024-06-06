@@ -11,10 +11,11 @@ import {
 
 function flattenArrayToPromise(fns) { // 可能是函数 也可能是数组
 	fns = Array.isArray(fns) ? fns : [fns]
-	return function() {
-		
+	return function(props) { // redux
+		// Promise.resolve().then(() => fn(props)).then(() => fn(props))
+		return fns.reduce((rPromise, fn) =>rPromise.then(() => fn(props)),  Promise.resolve())
 	}
-} 
+}
 
 export function toLoadPromise(app) {
 	return Promise.resolve().then(() => {
@@ -23,6 +24,7 @@ export function toLoadPromise(app) {
 			return app
 		}
 		app.status = LOADING_SOURCE_CODE // 正在加载应用
+		// loadapp 对于之前的内容 System.import()
 		return app.loadApp(app.customProps).then(v => {
 			const {
 				bootstrap,
@@ -34,7 +36,27 @@ export function toLoadPromise(app) {
 			app.bootstrap = flattenArrayToPromise(bootstrap)
 			app.mount = flattenArrayToPromise(mount)
 			app.unmount = flattenArrayToPromise(unmount)
+			// console.log(app)
 			return app
 		})
 	})
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

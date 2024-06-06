@@ -9,6 +9,9 @@
 		<!-- <script src="./single-spa.dev.min.js"></script> -->
 		<div id="a1"></div>
 		<div id="a2"></div>
+		<hr />
+		<a href="#/a">a应用</a>
+		<a href="#/b">b应用</a>
 		<!-- <script type="text/javascript">
 			// sessionStorage.setItem('aa', 11)
 		</script> -->
@@ -37,6 +40,11 @@
 						console.log('app1 mount1', props)
 						a1.innerHTML = 'app1'
 						aa = 100
+						return new Promise((resolve, reject) => {
+							setTimeout(() => {
+								resolve()
+							}, 1000)
+						})
 					},
 					async () => {
 						// 挂载 new Vue().$mount
@@ -55,6 +63,11 @@
 					console.log('app2 mount')
 					a2.innerHTML = 'app2'
 					aa = 101
+					return new Promise((resolve, reject) => {
+						setTimeout(() => {
+							resolve()
+						}, 2000)
+					})
 				},
 				unmount: async () => {
 					console.log('app2 unmount')
@@ -79,6 +92,34 @@
 			)
 			// 开启路径的监控 路径切换的时候可以调用对应的mount unmount方法
 			start()
+			// 这个监控操作 应该被延迟到 当应用挂载完毕后在执行
+			// 需要劫持原生的路由系统，保证当我们加载完毕后在加载路由
+			window.addEventListener("hashchange", function () {
+				console.log(window.location.hash, '===========')
+			})
+			window.addEventListener("popstate", function () {
+				console.log(window.location.hash, '===========')
+			})
 		</script>
 	</body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

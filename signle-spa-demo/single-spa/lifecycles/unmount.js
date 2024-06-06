@@ -4,7 +4,9 @@ import {
 	NOT_MOUNTED
 } from "../application/app.helpers.js"
 export function toUnmountPromise(app) {
+
 	return Promise.resolve().then(() => {
+		// debugger
 		if (app.status !== MOUNTED) { // 如果没有挂载的话 就不需要被卸载
 			return app
 		}
@@ -15,3 +17,14 @@ export function toUnmountPromise(app) {
 		})
 	})
 }
+
+
+
+
+
+
+
+
+
+
+

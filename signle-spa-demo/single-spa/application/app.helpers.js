@@ -32,10 +32,12 @@ export function getAppChanges() {
 	const appsToLoad = []
 	const appsToMount = []
 	const appsToUnmount = []
+	// console.log(apps, 35)
 
 	apps.forEach((app) => {
 		let appShouldBeActive = shouldBeActive(app)
 		switch (app.status) {
+
 			// 没有被 加载
 			case NOT_LOADED: // 标记当前应用下面 哪些应用需要被加载
 			case LOADING_SOURCE_CODE:
@@ -48,11 +50,12 @@ export function getAppChanges() {
 			case BOOTSTRAPPING:
 			case NOT_MOUNTED:
 				if (appShouldBeActive) {
-					appsToLoad.push(app)
+					appsToMount.push(app)
 				}
 				break
 			case MOUNTED: //当前路径下，哪些应用需要被卸载
-				if (!shouldBeActive) {
+				if (!appShouldBeActive) {
+					// console.log(5777)
 					appsToUnmount.push(app)
 				}
 				break
