@@ -10,8 +10,13 @@
 		<div id="a1"></div>
 		<div id="a2"></div>
 		<hr />
-		<a href="#/a">a应用</a>
-		<a href="#/b">b应用</a>
+<!--		<a href="#/a">a应用</a>-->
+<!--		<a href="#/b">b应用</a>-->
+
+		<a onClick="go('#/a')">a应用</a>
+		<hr />
+		<a onClick="go('#/b')">b应用</a>
+
 		<!-- <script type="text/javascript">
 			// sessionStorage.setItem('aa', 11)
 		</script> -->
@@ -100,6 +105,11 @@
 			window.addEventListener("popstate", function () {
 				console.log(window.location.hash, '===========')
 			})
+		</script>
+		<script type="text/javascript">
+			function go(url) { // 用户调用 pushState replaceState 此方法不会触发逻辑
+				history.pushState({}, null, url)
+			}
 		</script>
 	</body>
 </html>

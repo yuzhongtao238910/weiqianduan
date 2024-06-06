@@ -16,11 +16,28 @@ import "./navigation-event.js"
 import {callCaptureEventListener} from "./navigation-event.js";
 
 // 后续路径变化 也需要走这里 重新计算哪些应用需要被加载
+let appChangeUnderWay = false
+let peopleWaitingOnAppChange = []
 export function reroute(event) {
+	// 如果多次出发 reroute 我们可以创造一个队列
+	// onChangeUnderWay()
+	if (appChangeUnderWay) {
+		return new Promise((resolve, reject) => {
+			peopleWaitingOnAppChange.push({
+				resolve, reject
+			})
+		})
+	}
+
+	// 本质就是拦截路由 交给single-spa做跳转
+
+
+
 	const { appsToLoad, appsToMount, appsToUnmount } = getAppChanges()
 	// console.log(appsToLoad, appsToMount, appsToUnmount)
 
 	if (started) {
+		appChangeUnderWay = true
 		// console.log("22")
 		// 用户调用了started 方法 我们需要处理当前应用要挂载或者卸载
 		return performAppChange()
@@ -63,6 +80,7 @@ export function reroute(event) {
 		return Promise.all([loadMountPromises, mountPromises]).then(() => {
 			// 卸载完毕后
 			callEventListener()
+			appChangeUnderWay = false
 		})
 	}
 

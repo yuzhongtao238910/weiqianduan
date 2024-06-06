@@ -49,7 +49,20 @@ export function callCaptureEventListener(evt) {
         }
     }
 }
-
+function patchFn(updateState, methodName) {
+    return function () {
+        const urlBefore = window.location.href
+        const r = updateState.apply(this, arguments)
+        const urlAfter = window.location.href
+        if (urlBefore !== urlAfter) { // 前后的路径不一样
+            // 手动派发方法
+            window.dispatchEvent(new PopStateEvent("popstate"))
+        }
+        return r
+    }
+}
+window.history.pushState  = patchFn(window.history.pushState, 'pushState')
+window.history.replaceState  = patchFn(window.history.replaceState, 'replaceState')
 
 
 
