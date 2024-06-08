@@ -1,5 +1,5 @@
 import { BrowserRouter, Link} from "react-router-dom"
-import './App.css';
+// import './App.css';
 import {createRef, useEffect, useRef} from "react";
 import {
     loadMicroApp

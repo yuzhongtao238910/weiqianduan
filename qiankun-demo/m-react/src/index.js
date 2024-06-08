@@ -28,6 +28,13 @@ export async function bootstrap(props) {
     console.log("props", props)
 }
 export async function mount(props) {
+    props.onGlobalStateChange((state, prev) => {
+        // state: 变更后的状态; prev 变更前的状态
+        console.log(state, prev, 'm-react-props');
+    })
+    props.setGlobalState({
+        name: "water"
+    });
     // 基座的容器叫做container
     console.log(props, 21)
     render(props)

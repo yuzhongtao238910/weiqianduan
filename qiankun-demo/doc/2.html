@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+  <script type="text/javascript">
+    // js 沙箱
+    // 防止应用加载的时候，对window造成污染
+    // a 应用更改了window属性
+    // b 应用更改了window属性
+    /*
+    方式1：快照 比较浪费性能，要给window拍照： 先保留a应用的属性 失活的将修改的属性存起来，激活的时候还原回来
+    方式2：只存储修改过的，或者添加过的属性，而不是给整个window都是快照
+    方案3：多个实例来实现
+
+    快照
+    单例proxy
+    多例proxy
+     */
+    class SnapshotSandbox {
+      constructor() {
+        this.modifyPropsMap = {} // 存储全局上面哪些属性被修改了
+      }
+      active() {
+        this.windowSnapShot = {}
+        // 给window拍照
+        Object.keys(window).forEach(prop => {
+          this.windowSnapShot[prop] = window[prop]
+        })
+        Object.keys(this.modifyPropsMap).forEach(prop => {
+          window[prop] = this.modifyPropsMap[prop]
+        })
+      }
+      inactive() {
+        this.modifyPropsMap = {}
+        Object.keys(window).forEach(prop => {
+          if (window[prop] !== this.windowSnapShot[prop]) {
+            this.modifyPropsMap[prop] = window[prop]
+            window[prop] = this.windowSnapShot[prop]
+          }
+        })
+      }
+    }
+    let sandbox = new SnapshotSandbox()
+    sandbox.active()
+    window.a = 100
+    window.b = 200
+    sandbox.inactive()
+    console.log(window.a, sandbox)
+    sandbox.active()
+    console.log(window.a, sandbox)
+
+    // 缺点就是浪费内存
+    // single-spa 是没有沙箱的
+
+
+
+    // 方式2：遗留的 使用的是proxy vue之中的属性也是基于proxy 频繁的获取设置相对浪费性能，兼容性没有那么好
+    // 基于proxy的沙箱，如果是两个应用一起运行 window就一个，就会容易乱掉
+    // 比方案1 节约内存
+    // 快照 proxy都只能是单例的情况下使用，同时加载两个应用就会混乱
+    // 方案2的使用方式 (function (window) {})(sandbox.proxy) 就当proxy是window
+    class LegacySandbox {
+      constructor() {
+        // 1) 修改的内容 2）新增的内容 3）不管是修改还是新增的内容
+        this.modifyPropsMap = new Map()
+        this.addedPropsMap = new Map()
+        this.currentPropsMap = new Map()
+        const fakeWindow = Object.create(null)
+        let that = this
+        const proxy = new Proxy(fakeWindow, {
+          get(target, ket, recevier) {
+            return window[key]
+          },
+          set(target, key, value, receiver) {
+
+            // console.log(window.hasOwnProperty(key), this.addedPropsMap)
+            if (!window.hasOwnProperty(key)) {
+              // 添加的属性
+              that.addedPropsMap.set(key, value)
+            } else if (!this.modifyPropsMap.has(key)) {
+              // 保存修改的原值
+              that.modifyPropsMap.set(key, window[key])
+            }
+            // 所有的修改操作都保留了一份
+            that.currentPropsMap.set(key, value)
+            window[key] = value
+          }
+        })
+        this.proxy = proxy
+      }
+      setWindowProp(key, value) {
+        if (value === undefined) {
+          delete  window[key]
+        } else {
+          window[key] = value // 置换回去原值
+        }
+      }
+      inactive() {
+        this.modifyPropsMap.forEach((value, key) => {
+          this.setWindowProp(key, value)
+        })
+        this.addedPropsMap.forEach((value, key) => {
+          this.setWindowProp(key, undefined)
+        })
+      }
+      active() {
+        this.currentPropsMap.forEach((value, key) => {
+          this.setWindowProp(key, value)
+        })
+      }
+    }
+
+    let sand = new LegacySandbox()
+// debugger
+    sand.proxy.water = "water"
+
+    sand.inactive()
+    console.log(window.water)
+    sand.active()
+    console.log(window.water)
+
+    let person = {
+      name: "aaa",
+      age: 2,
+      hobby: [111]
+    }
+
+
+    let pp =  new Proxy(person, {
+      get(target, p, receiver) {
+        return target[p]
+      },
+      set(target, p, value, receiver) {
+        console.log("De")
+         target[p] = value
+        return
+      }
+    })
+    delete person.name
+
+
+    class ProxySandbox {
+      // micro-app 和 qiankun都是这种方案
+      constructor() {
+        this.running = false
+        const fakeWindow = Object.create(null)
+        this.proxy = new Proxy(fakeWindow, {
+          get: (target, key) => {
+            // if (!this.running) {
+            //   return
+            // }
+            return key in fakeWindow ? target[key] : window[key]
+          },
+          // 修改不操作window
+          set: (target, key, value) => {
+            if (this.running) {
+              target[key] = value
+            }
+            return true
+          }
+        })
+      }
+
+      active() {
+        if (!this.running) {
+          this.running = true
+        }
+      }
+      inactive() {
+        this.running = false
+      }
+    }
+    let sandbox1 = new ProxySandbox()
+    let sandbox2 = new ProxySandbox()
+    sandbox1.active()
+    sandbox1.proxy.a = 100
+    sandbox1.proxy.b = 300
+    sandbox2.active()
+    sandbox2.proxy.a = 100
+    sandbox2.proxy.b = 300
+    sandbox1.inactive()
+    sandbox2.inactive()
+    // 在沙箱里面修改的，不会影响window
+    console.log(sandbox1.proxy.a, sandbox1.proxy.b)
+    console.log(sandbox2.proxy.a, sandbox2.proxy.b)
+    ;(function(window) {
+
+    })(sandbox1.proxy);
+
+    ;(function(window) {
+
+    })(sandbox2.proxy);
+  </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
