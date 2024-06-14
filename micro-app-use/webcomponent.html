@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<!--
+1-  custom element允许用户自定义一个元素 随便起名字 和自带的分开
+
+2-  shadow dom 样式隔离是 web component的一部分
+
+3- 可以支持组件的特别 模板 插槽 生命周期 属性都是组件的特点
+
+
+-->
+    <my-button type="primary">按钮-1</my-button>
+
+    <my-button type="primary">按钮-2</my-button>
+    <my-button type="primary">按钮-3</my-button>
+<!--template是浏览器内置的元素-->
+    <template id="btn">
+        <button class="m-button">
+            <slot>按钮</slot>
+        </button>
+    </template>
+    <script type="text/javascript">
+        class MyButton extends HTMLElement {
+            connectedCallback() { //类似于vue的mounted
+                // 元素挂在完成后  我们需要获取传入的属性 并且使用对应的模板来渲染
+                console.log("元素加载完毕")
+                this.shadow = this.attachShadow({
+                    mode: 'closed'
+                })
+                let btn = document.getElementById("btn")
+                const btnType = this.getAttribute('type') || 'default'
+
+                let types = {
+                    primary: {
+                        backgroundColor: 'blue'
+                    },
+                    default: {
+                        backgroundColor: '#a1a1a1'
+                    }
+                }
+                let style = document.createElement('style')
+                style.innerHTML = `
+                    .my-button {
+                        backgroundColor: ${types[btnType]};
+                        color: #fff;
+                        padding: 10px 20px;
+                    }
+                `
+                let tpl = btn.content.cloneNode(true)
+                console.log(tpl, 34)
+                this.shadow.appendChild(style) // 样式隔离
+                this.shadow.appendChild(tpl) // dom隔离
+            }
+        }
+        window.customElements.define("my-button", MyButton)
+    </script>
+</body>
+</html>
+
+
+
+
+
