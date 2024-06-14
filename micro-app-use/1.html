@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        #temp {
+            background-color: pink;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div id="temp">app</div>
+        <p>238910</p>
+    </div>
+    <script type="text/javascript">
+        let app = document.getElementById('app')
+        let inner = app.innerHTML
+        let shadowRoot =  app.attachShadow({
+            mode: "closed"
+        })
+        app.innerHTML = ''
+        shadowRoot.id = "shadow"
+        shadowRoot.innerHTML = inner
+        console.dir(shadowRoot.querySelector("#temp"))
+        // console.dir(app.shadowRoot.querySelector("#temp"))
+        // console.log(shadowRoot.querySelector("#temp"))
+        // shadowRoot.querySelector("#temp").style.backgroundColor = 'red'
+
+    </script>
+</body>
+</html>

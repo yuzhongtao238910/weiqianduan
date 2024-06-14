@@ -18,6 +18,9 @@
 
     <my-button type="primary">按钮-2</my-button>
     <my-button type="primary">按钮-3</my-button>
+
+<hr>
+<my-button type="default" id="btn1">按钮-4</my-button>
 <!--template是浏览器内置的元素-->
     <template id="btn">
         <button class="m-button">
@@ -30,24 +33,24 @@
                 // 元素挂在完成后  我们需要获取传入的属性 并且使用对应的模板来渲染
                 console.log("元素加载完毕")
                 this.shadow = this.attachShadow({
-                    mode: 'closed'
+                    mode: 'open'
                 })
                 let btn = document.getElementById("btn")
                 const btnType = this.getAttribute('type') || 'default'
 
                 let types = {
                     primary: {
-                        backgroundColor: 'blue'
+                        backgroundColor: 'purple'
                     },
                     default: {
-                        backgroundColor: '#a1a1a1'
+                        backgroundColor: 'pink'
                     }
                 }
                 let style = document.createElement('style')
                 style.innerHTML = `
-                    .my-button {
-                        backgroundColor: ${types[btnType]};
-                        color: #fff;
+                    .m-button {
+                        background-color: ${types[btnType]['backgroundColor']};
+                        color: red;
                         padding: 10px 20px;
                     }
                 `
@@ -55,9 +58,20 @@
                 console.log(tpl, 34)
                 this.shadow.appendChild(style) // 样式隔离
                 this.shadow.appendChild(tpl) // dom隔离
+                // console.dir(this.shadowRoot === this.shadow)
+                // console.log(this.shadow.querySelector(".m-button"))
             }
+
+
+            static get observedAttributes() {}
         }
         window.customElements.define("my-button", MyButton)
+
+        const customBtn = document.querySelector("#btn1")
+        setTimeout(() => {
+            console.log(customBtn)
+            customBtn.setAttribute("type", "primary")
+        }, 1000)
     </script>
 </body>
 </html>
