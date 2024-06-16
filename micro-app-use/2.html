@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        .m-button {
+            color: pink;
+        }
+    </style>
+</head>
+<body>
+<div id="app">
+<!--  <button>按钮</button>-->
+</div>
+<my-button type="primary"></my-button>
+<hr>
+<my-button type="primary"></my-button>
+<template id="btn">
+  <button class="m-button">
+    <slot>按钮</slot>
+  </button>
+  <div>你好</div>
+</template>
+
+<button class="m-button">牛</button>
+  <script type="text/javascript">
+    class MyButton extends HTMLElement {
+        constructor() {
+            super();
+        }
+      connectedCallback() {
+          this.shadow = this.attachShadow({
+              mode: 'open'
+          })
+        let btn = document.getElementById("btn")
+        // console.log(btn)
+        console.log(btn.content)
+          this.shadow.appendChild(btn.content.cloneNode(true))
+      }
+    }
+    window.customElements.define("my-button", MyButton)
+  </script>
+</body>
+</html>

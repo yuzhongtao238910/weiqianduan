@@ -1,7 +1,7 @@
 import {BrowserRouter, Link, Route, Routes} from "react-router-dom"
 import Page1 from  "./page-1"
 import Page2 from  "./page-2"
-
+// 接入成本很低
 function App() {
   return (
     <div className="App">

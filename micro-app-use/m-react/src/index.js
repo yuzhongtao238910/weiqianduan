@@ -10,6 +10,7 @@ import App from './App';
 
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
+console.log(window, 'm-react')
 root.render(
 
     <App />

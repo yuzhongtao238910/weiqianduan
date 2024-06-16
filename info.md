@@ -60,16 +60,37 @@
 
 ### 4.micro-app
 
+- 对于micro-app而言，核心是创建一个micro-app的组件，就是一个webComponent组件
+- 获取html 将其放到webComponent
+- css就是作用的隔离 js做proxy沙箱 (function(window)with(window) {})(proxyWindow)
+- 执行完毕应用后可以正常的挂载
+- qiankun改造的子应用 mount unmount 以前的qiankun项目也可以接入进来
+- 最后的样式肯定都是在style里面好做作用域的隔离
+
+
+
+iframe / 路由劫持 / web Component
+
+
+
+
+emp
+使用了模块联邦
+- 模块联邦：的动机是为了不同开发小组之间共同开发一个或者多个应用
+应用将会被划分为更小的应用块，一个应用快，可以使比如头部导航或者是侧边栏的前端组件
+也可以是数据获取逻辑的逻辑组件
+- 每个应用块应该由不同的组开发
+- 应用或者是应用块共享其他的应用块或者是库
 
 
 
 
 
 
-
-
-
-
+使用模块联邦的时候，每个应用块都是一个独立的构建，这些构建都将编译为容器
+容器可以被其他应用或者其他容器引用
+一个被引用的容器成为remote，引用者是host，remote暴露给host
+host则可以使用这些暴露的模块，这些模块被称为remote模块
 
 
 

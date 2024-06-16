@@ -20,6 +20,9 @@
     <my-button type="primary">按钮-3</my-button>
 
 <hr>
+<div id="apple">
+    <div></div>
+</div>
 <my-button type="default" id="btn1">按钮-4</my-button>
 <!--template是浏览器内置的元素-->
     <template id="btn">
@@ -27,18 +30,25 @@
             <slot>按钮</slot>
         </button>
     </template>
+<button class="m-button"></button>
     <script type="text/javascript">
+        // web-component 没有什么降级方案啊 而且兼容性不好
+        // micro-app 的核心是将应用变为自定义元素 插入到基座之中
+        const appleDiv = document.querySelector("#apple")
+        // console.log(appleDiv.content.cloneNode(true))
         class MyButton extends HTMLElement {
             connectedCallback() { //类似于vue的mounted
                 // 元素挂在完成后  我们需要获取传入的属性 并且使用对应的模板来渲染
-                console.log("元素加载完毕")
+                // console.log("元素加载完毕")
                 this.shadow = this.attachShadow({
                     mode: 'open'
                 })
+                // web-comnponent 的兼容性不好
+                // 获取远程html
                 let btn = document.getElementById("btn")
                 const btnType = this.getAttribute('type') || 'default'
 
-                let types = {
+                this.types = {
                     primary: {
                         backgroundColor: 'purple'
                     },
@@ -46,32 +56,67 @@
                         backgroundColor: 'pink'
                     }
                 }
+                // let type = this.types
                 let style = document.createElement('style')
                 style.innerHTML = `
                     .m-button {
-                        background-color: ${types[btnType]['backgroundColor']};
+                        background-color: ${this.types[btnType]['backgroundColor']};
                         color: red;
                         padding: 10px 20px;
                     }
                 `
+                // console.log(btn, 62)
                 let tpl = btn.content.cloneNode(true)
-                console.log(tpl, 34)
+                // console.log(tpl)
+                // console.log(tpl, 34)
                 this.shadow.appendChild(style) // 样式隔离
                 this.shadow.appendChild(tpl) // dom隔离
                 // console.dir(this.shadowRoot === this.shadow)
                 // console.log(this.shadow.querySelector(".m-button"))
+                this.dispatchEvent(new Event("mounted"))
+
             }
 
 
-            static get observedAttributes() {}
-        }
-        window.customElements.define("my-button", MyButton)
+            static get observedAttributes() {
+                return ['type']
+            }
 
-        const customBtn = document.querySelector("#btn1")
+            attributeChangedCallback(name, oldVal, newVal) {
+                console.log(name, newVal, oldVal, 78)
+                if (this.shadow) {
+                    const btn = this.shadow.querySelector('.m-button')
+                    btn.style['background-color'] = this.types[newVal]['backgroundColor']
+                    this.dispatchEvent(new Event("update"))
+                }
+            }
+
+            disconnectedCallback() { // 组件卸载出发
+                console.log("组件卸载")
+            }
+            adoptedCallback() {
+                console.log("移动到了其他的地方了")
+            } // 移动到其他的地方
+
+        }
+
+
+        const customBtn = document.querySelector("my-button")
+        customBtn.addEventListener("mounted", () => {
+            console.log("mounted")
+        })
+        customBtn.addEventListener("update", () => {
+            console.log("update")
+        })
+        window.customElements.define("my-button", MyButton)
         setTimeout(() => {
             console.log(customBtn)
-            customBtn.setAttribute("type", "primary")
+            customBtn.setAttribute("type", "default")
         }, 1000)
+
+        setTimeout(() => {
+            customBtn.parentNode.removeChild(customBtn)
+        }, 3000)
     </script>
 </body>
 </html>
